@@ -25,6 +25,7 @@ const user = userData.rows[0]
  if(!matchPassword){
     throw new Error("Invalid password")
  }
+
  const jwtPayload = {
     id:user.id,
     name:user.name,
