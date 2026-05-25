@@ -1,16 +1,21 @@
-import type { Request, Response } from "express";
+import { type Request, type Response } from "express";
 import { issuesService } from "./issues.service";
+import type { JwtPayload } from "jsonwebtoken";
 
 const issuesUerCreate = async (req: Request, res: Response) => {
+  console.log(req.user);
+
   try {
-    const reporter_id = req.user.id;
+    const reporter_id = req.user?.id;
+    // console.log(reporter_id);
     const payload = {
       ...req.body,
       reporter_id,
-      status: "open",
+      // status: "open",
     };
 
-    const result = await issuesService.issuesCrateIntoDB( payload);
+    const result = await issuesService.issuesCrateIntoDB(payload);
+
     res.status(201).json({
       success: true,
       message: "Issue created successfully",
@@ -25,4 +30,72 @@ const issuesUerCreate = async (req: Request, res: Response) => {
   }
 };
 
-export const issuesController = { issuesUerCreate };
+// get all issues
+const issueAllUser = async (req: Request, res: Response) => {
+  try {
+    const result = await issuesService.issuesAllFromDB(req.query);
+
+    res.status(200).json({
+      success: true,
+      message: "Issues retrieved successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: error,
+    });
+  }
+};
+
+// get id by issues
+const singleIssues = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    // validation
+
+    const result = await issuesService.issuesIdGet(id as string);
+    res.status(200).json({
+      success: true,
+      message: "Issue retrieved successfully",
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: error,
+    });
+  }
+};
+// patch isssues
+const updateIssues = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await issuesService.issuesUpdateFromDB(
+      req.body,
+      id as string,
+      req.user,
+    );
+    // console.log(result);
+    res.status(200).json({
+      success: true,
+      message: "Issue updated successfully",
+      data: result.rows[0],
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: error,
+    });
+  }
+};
+
+export const issuesController = {
+  issuesUerCreate,
+  issueAllUser,
+  singleIssues,
+  updateIssues,
+};

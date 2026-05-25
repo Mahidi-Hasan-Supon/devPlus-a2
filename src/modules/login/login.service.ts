@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { pool } from "../../db";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import config from "../../config";
 import { access } from "node:fs";
 
@@ -19,23 +19,26 @@ const loginUserIntoDB = async (payload: {
         `,
     [email],
   );
-//   console.log(userData.rows[0]);
-const user = userData.rows[0]
- const matchPassword = await bcrypt.compare(password , user.password)
- if(!matchPassword){
-    throw new Error("Invalid password")
- }
+  //   console.log(userData.rows[0]);
+  const user = userData.rows[0];
+  if (userData.rows.length === 0) {
+    throw new Error("User not found");
+  }
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
+    throw new Error("Invalid password");
+  }
 
- const jwtPayload = {
-    id:user.id,
-    name:user.name,
-    role:user.role
- }
- const accessToken = jwt.sign(jwtPayload , config.secret_key as string, {
-    expiresIn:"1d"
- })
- console.log(accessToken);
-return {accessToken , user}
+  const jwtPayload = {
+    id: user.id,
+    name: user.name,
+    role: user.role,
+  };
+  const accessToken = jwt.sign(jwtPayload, config.secret_key as string, {
+    expiresIn: "1d",
+  });
+  console.log(accessToken);
+  return { accessToken, user };
 };
 
 export const loginService = { loginUserIntoDB };
