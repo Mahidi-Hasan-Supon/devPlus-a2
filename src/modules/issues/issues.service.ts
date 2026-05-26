@@ -1,55 +1,40 @@
 import { pool } from "../../db";
 
 const issuesCrateIntoDB = async (payload: any) => {
-  const { title, description, type, status, reporter_id } = payload;
+  console.log("payload", payload);
+  const { title, description, type, reporter_id } = payload;
   const validTypes = ["bug", "feature_request"];
+  if (!validTypes.includes(type)) {
+    throw new Error("Invalid type. Only 'bug' or 'feature_request' allowed");
+  }
+  // if (!validTypes.includes(type)) {
+  //   throw new Error("Invalid type. Only 'bug' or 'feature_request' allowed");
+  // }
   // status validation
   // const validStatus = ["open", "in_progress", "resolved"];
 
   //   console.log(title, description, type, status, reporter_id);
-  const user = await pool.query(
+  // const user = await pool.query(
+  //   `
+  //   SELECT * FROM users WHERE id=$1
+  //   `,
+  //   [reporter_id],
+  // );
+  // console.log(user);
+  // if (user.rows.length === 0) {
+  //   throw new Error("User not exits");
+  // }
+
+  const result = await pool.query(
     `
-    SELECT * FROM users WHERE id=$1
-    `,
-    [reporter_id],
-  );
-  console.log(user);
-  if (user.rows.length === 0) {
-    throw new Error("User not exits");
-  }
-
-  if (status) {
-    const result = await pool.query(
-      `
-    INSERT INTO issues(title, description, type, status, reporter_id ) VALUES ($1 , $2 , $3 ,COALESCE($4), $5) RETURNING *
-    `,
-      [title, description, type, status, reporter_id],
-    );
-    console.log(result);
-    if (!validTypes.includes(result.rows[0].type)) {
-      throw new Error("Invalid type. Only 'bug' or 'feature_request' allowed");
-    }
-    // if (!validStatus.includes(result.rows[0].status)) {
-    //   throw new Error(
-    //     "Invalid status. Only 'open', 'in_progress', or 'resolved' allowed",
-    //   );
-    // }
-
-    return result;
-  } else {
-    const result = await pool.query(
-      `
     INSERT INTO issues(title, description, type, reporter_id ) VALUES ($1 , $2 , $3 , $4) RETURNING *
     `,
-      [title, description, type, reporter_id],
-    );
-    if (!validTypes.includes(result.rows[0].type)) {
-      throw new Error("Invalid type. Only 'bug' or 'feature_request' allowed");
-    }
+    [title, description, type, reporter_id],
+  );
 
-    return result;
-  }
+  return result;
 };
+
 // get all issues
 // const issuesAllFromDB = async (query: any) => {
 //   const { sort, type, status } = query;
@@ -228,9 +213,11 @@ const issuesUpdateFromDB = async (payload: any, id: string, user: any) => {
     `
     SELECT * FROM issues WHERE id=$1
     `,
-    [id],
+    [Number(id)],
   );
-  console.log(issueData);
+  // console.log(issueData);
+  console.log("rows:", issueData.rows);
+  console.log("id", typeof id);
   const issue = issueData.rows[0];
   if (!issue) {
     throw new Error("Issue not found");
@@ -242,17 +229,49 @@ const issuesUpdateFromDB = async (payload: any, id: string, user: any) => {
   if (user?.role === "contributor" && issue.status !== "open") {
     throw new Error("You cannot update resolved/in_progress issues");
   }
-  const result = await pool.query(
-    `
+  // update
+  if (user.role === "maintainer") {
+    const result = await pool.query(
+      `
+      UPDATE issues SET title=COALESCE($1 , title) , description=COALESCE($2 , description), type=COALESCE($3 , type) , status=COALESCE($4 , status)   WHERE id=$5
+      RETURNING *
+    `,
+      [title, description, type, status, Number(id)],
+    );
+    console.log(result.rows[0]);
+
+    if (result.rows.length === 0) {
+      throw new Error("Invalid id");
+    }
+    return result;
+  } else {
+    const result = await pool.query(
+      `
       UPDATE issues SET title=COALESCE($1 , title) , status='in_progress', description=COALESCE($2 , description), type=COALESCE($3 , type)   WHERE id=$4
       RETURNING *
     `,
-    [title, description, type, id],
+      [title, description, type, id],
+    );
+    console.log(result.rows[0]);
+
+    if (result.rows.length === 0) {
+      throw new Error("Invalid id");
+    }
+    return result;
+  }
+};
+// delete
+const deleteIssueFromDB = async (id: string) => {
+  const result = await pool.query(
+    `  
+    DELETE FROM issues
+    WHERE id = $1 RETURNING *
+`,
+    [id],
   );
   console.log(result.rows[0]);
-
   if (result.rows.length === 0) {
-    throw new Error("Invalid id");
+    throw new Error("Issue not found");
   }
   return result;
 };
@@ -261,4 +280,5 @@ export const issuesService = {
   issuesAllFromDB,
   issuesIdGet,
   issuesUpdateFromDB,
+  deleteIssueFromDB,
 };
