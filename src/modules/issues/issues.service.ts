@@ -217,6 +217,12 @@ const issuesIdGet = async (id: string) => {
 // update
 const issuesUpdateFromDB = async (payload: any, id: string, user: any) => {
   const { title, description, type, status } = payload;
+  // validation first
+  const validTypes = ["bug", "feature_request"];
+
+  if (type && !validTypes.includes(type)) {
+    throw new Error("Only bug or feature_request allowed");
+  }
 
   const issueData = await pool.query(
     `
@@ -238,12 +244,13 @@ const issuesUpdateFromDB = async (payload: any, id: string, user: any) => {
   }
   const result = await pool.query(
     `
-      UPDATE issues SET title=COALESCE($1 , title) , description=COALESCE($2 , description), type=COALESCE($3 , type)   WHERE id=$4
+      UPDATE issues SET title=COALESCE($1 , title) , status='in_progress', description=COALESCE($2 , description), type=COALESCE($3 , type)   WHERE id=$4
       RETURNING *
     `,
     [title, description, type, id],
   );
   console.log(result.rows[0]);
+
   if (result.rows.length === 0) {
     throw new Error("Invalid id");
   }
