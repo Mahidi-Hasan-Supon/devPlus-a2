@@ -8,14 +8,14 @@ const loginUser = async (req: Request, res: Response) => {
       success: true,
       message: "Login successful",
       data: {
-        "token": result.accessToken,
+        token: result.accessToken,
         user: {
-          "id": result.user.id,
-          "name": result.user.name,
-          "email": result.user.email,
-          "role": result.user.role,
-          "created_at": result.user.created_at,
-          "updated_at": result.user.updated_at,
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+          created_at: result.user.created_at,
+          updated_at: result.user.updated_at,
         },
       },
     });
