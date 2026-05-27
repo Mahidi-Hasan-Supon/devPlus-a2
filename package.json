@@ -2,9 +2,12 @@
   "name": "devplus-a2",
   "version": "1.0.0",
   "description": "",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch ./src/index.ts"
+    "start": "node dist/index.js",
+    "dev": "tsx watch ./src/index.ts",
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +16,9 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.1",
-    "tsx": "^4.22.3"
+    "tsup": "^8.5.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
