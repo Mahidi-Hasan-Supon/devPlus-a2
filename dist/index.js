@@ -23,7 +23,10 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // src/app.ts
-var import_express5 = __toESM(require("express"));
+var import_express4 = __toESM(require("express"));
+
+// src/modules/signup/signup.route.ts
+var import_express = require("express");
 
 // src/db/index.ts
 var import_pg = require("pg");
@@ -77,9 +80,6 @@ var initDB = async () => {
     console.log(error);
   }
 };
-
-// src/modules/signup/signup.route.ts
-var import_express = require("express");
 
 // src/modules/signup/signup.service.ts
 var import_bcryptjs = __toESM(require("bcryptjs"));
@@ -143,7 +143,6 @@ var import_express2 = require("express");
 // src/modules/login/login.service.ts
 var import_bcryptjs2 = __toESM(require("bcryptjs"));
 var import_jsonwebtoken = __toESM(require("jsonwebtoken"));
-var import_node_fs = require("fs");
 var loginUserIntoDB = async (payload) => {
   const { email, password } = payload;
   const userData = await pool.query(
@@ -207,9 +206,6 @@ router2.post("/login", loginController.loginUser);
 var loginRouter = router2;
 
 // src/modules/issues/issues.route.ts
-var import_express4 = require("express");
-
-// src/modules/issues/issues.controller.ts
 var import_express3 = require("express");
 
 // src/modules/issues/issues.service.ts
@@ -529,7 +525,7 @@ var auth = (...roles) => {
 var auth_default = auth;
 
 // src/modules/issues/issues.route.ts
-var router3 = (0, import_express4.Router)();
+var router3 = (0, import_express3.Router)();
 router3.post(
   "/",
   auth_default("contributor", "maintainer"),
@@ -557,16 +553,19 @@ var logger_default = logger;
 
 // src/app.ts
 var import_cors = __toESM(require("cors"));
-var app = (0, import_express5.default)();
+var app = (0, import_express4.default)();
 var corsOptions = {
   origin: "http://localhost:3000"
 };
 app.use((0, import_cors.default)(corsOptions));
-app.use(import_express5.default.json());
-app.use(import_express5.default.text());
+app.use(import_express4.default.json());
+app.use(import_express4.default.text());
+app.use(import_express4.default.urlencoded({ extended: true }));
 app.use(logger_default);
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.status(200).json({
+    message: "Express server"
+  });
 });
 app.use("/api/auth", signupRoute);
 app.use("/api/auth", loginRouter);
